@@ -3,7 +3,7 @@ button.addEventListener("click", function()
 {
     console.log("Hello world");
 
-   document.getElementById("title").innerHTML = "Moi maalima";
+   document.getElementById("title").textContent = "Moi maalima";
 });
 
 let mybutton = document.getElementById("add-data");
