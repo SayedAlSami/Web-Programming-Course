@@ -1,7 +1,8 @@
 let button = document.getElementById("my-button");
 button.addEventListener("click", function()
 {
-   document.getElementById("text").textContent = "Hello world"; 
+    console.log("Hello world");
+   document.getElementById("text").textContent = "Hello World";
    document.getElementById("title").innerHTML = "Moi Maalima";
 });
 
