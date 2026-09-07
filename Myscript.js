@@ -12,7 +12,7 @@ mybutton.addEventListener("click", function()
     let listItem = document.createElement("li");
     if (textarea.value.trim() === "") 
         {
-            listItem.innerHTML = "New entry";
+            listItem.innerHTML = "Hello World";
         }
     
     else
