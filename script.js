@@ -6,9 +6,10 @@ const employmentUrl =
 
 
 async function getData() {
+
     try {
 
-        // Get the population query
+        // Get population query
         const populationQueryResponse =
             await fetch("population_query.json");
 
@@ -16,7 +17,7 @@ async function getData() {
             await populationQueryResponse.json();
 
 
-        // Get population data
+        // Send population query
         const populationResponse =
             await fetch(populationUrl, {
                 method: "POST",
@@ -30,7 +31,7 @@ async function getData() {
             await populationResponse.json();
 
 
-        // Get the employment query
+        // Get employment query
         const employmentQueryResponse =
             await fetch("employment_query.json");
 
@@ -38,7 +39,7 @@ async function getData() {
             await employmentQueryResponse.json();
 
 
-        // Get employment data
+        // Send employment query
         const employmentResponse =
             await fetch(employmentUrl, {
                 method: "POST",
@@ -52,11 +53,17 @@ async function getData() {
             await employmentResponse.json();
 
 
+        // Create the table
         createTable(populationData, employmentData);
 
-    } catch (error) {
-        console.error("Error fetching data:", error);
     }
+
+    catch (error) {
+
+        console.error("Error fetching data:", error);
+
+    }
+
 }
 
 
@@ -66,27 +73,29 @@ function createTable(populationData, employmentData) {
         document.getElementById("table-body");
 
 
-    // Population municipalities
+    // Get municipality names
     const municipalities =
         populationData.dimension[
             "alue_23_20260101"
         ].category.label;
 
 
-    // Population values
+    // Get population values
     const populations =
         populationData.value;
 
 
-    // Employment values
+    // Get employment values
     const employments =
         employmentData.value;
 
 
+    // Get municipality codes
     const municipalityCodes =
         Object.keys(municipalities);
 
 
+    // Create a row for each municipality
     municipalityCodes.forEach((code, index) => {
 
         const municipality =
@@ -104,12 +113,12 @@ function createTable(populationData, employmentData) {
             ((employment / population) * 100).toFixed(2);
 
 
-        // Create row
+        // Create table row
         const row =
             document.createElement("tr");
 
 
-        // Municipality
+        // Create municipality cell
         const municipalityCell =
             document.createElement("td");
 
@@ -117,7 +126,7 @@ function createTable(populationData, employmentData) {
             municipality;
 
 
-        // Population
+        // Create population cell
         const populationCell =
             document.createElement("td");
 
@@ -125,7 +134,7 @@ function createTable(populationData, employmentData) {
             population;
 
 
-        // Employment
+        // Create employment cell
         const employmentCell =
             document.createElement("td");
 
@@ -133,7 +142,7 @@ function createTable(populationData, employmentData) {
             employment;
 
 
-        // Employment %
+        // Create employment percentage cell
         const percentageCell =
             document.createElement("td");
 
@@ -148,21 +157,28 @@ function createTable(populationData, employmentData) {
         row.appendChild(percentageCell);
 
 
-        // Conditional styling
+        // Color rows based on employment percentage
         if (percentage > 45) {
-            row.style.backgroundColor = "#aaffbd";
+
+            row.style.backgroundColor =
+                "#abffbd";
+
+        }
+        else if (percentage < 25) {
+
+            row.style.backgroundColor =
+                "#ff9e9e";
+
         }
 
-        if (percentage < 25) {
-            row.style.backgroundColor = "#ff9e9e";
-        }
 
-
-        // Add row to table
+        // Add row to table body
         tableBody.appendChild(row);
 
     });
+
 }
 
 
+// Run when JavaScript is enabled
 getData();
