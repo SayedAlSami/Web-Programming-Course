@@ -1,134 +1,94 @@
 const populationUrl =
-    "https://pxdata.stat.fi/PxWeb/api/v1/fi/StatFin/vaerak/statfin_vaerak_pxt_11ra.px";
+    "https://pxdata.stat.fi:443/PxWeb/api/v1/fi/StatFin/vaerak/statfin_vaerak_pxt_11ra.px";
 
 const employmentUrl =
-    "https://pxdata.stat.fi/PxWeb/api/v1/fi/StatFin/tyokay/statfin_tyokay_pxt_115b.px";
+    "https://pxdata.stat.fi:443/PxWeb/api/v1/fi/StatFin/tyokay/statfin_tyokay_pxt_115b.px";
 
 
-// --------------------------------------------------
-// GET POPULATION DATA
-// --------------------------------------------------
+async function fetchStatFinData(url, body) {
 
-function getPopulation() {
+    const response = await fetch(url, {
+        method: "POST",
 
-    return fetch("population_query.json")
-        .then(response => response.json())
-        .then(query => {
+        headers: {
+            "Content-Type": "application/json"
+        },
 
-            return fetch(populationUrl, {
-                method: "POST",
+        body: JSON.stringify(body)
+    });
 
-                headers: {
-                    "Content-Type": "application/json"
-                },
-
-                body: JSON.stringify(query)
-            });
-
-        })
-        .then(response => response.json());
+    return await response.json();
 }
 
 
-// --------------------------------------------------
-// GET EMPLOYMENT DATA
-// --------------------------------------------------
+async function initializeCode() {
 
-function getEmployment() {
+    // Load the two query JSON files
+    const populationBody =
+        await (await fetch("population_query.json")).json();
 
-    return fetch("employment_query.json")
-        .then(response => response.json())
-        .then(query => {
+    const employmentBody =
+        await (await fetch("employment_query.json")).json();
 
-            return fetch(employmentUrl, {
-                method: "POST",
 
-                headers: {
-                    "Content-Type": "application/json"
-                },
+    // Request both APIs at the same time
+    const [populationData, employmentData] =
+        await Promise.all([
 
-                body: JSON.stringify(query)
-            });
+            fetchStatFinData(
+                populationUrl,
+                populationBody
+            ),
 
-        })
-        .then(response => response.json());
+            fetchStatFinData(
+                employmentUrl,
+                employmentBody
+            )
+
+        ]);
+
+
+    setupTable(
+        populationData,
+        employmentData
+    );
 }
 
 
-// --------------------------------------------------
-// GET BOTH DATASETS
-// --------------------------------------------------
-
-Promise.all([
-    getPopulation(),
-    getEmployment()
-])
-
-.then(([populationData, employmentData]) => {
-
-    console.log("Population data:");
-    console.log(populationData);
-
-    console.log("Employment data:");
-    console.log(employmentData);
-
-    createTable(populationData, employmentData);
-
-})
-
-.catch(error => {
-
-    console.error("Something went wrong:");
-    console.error(error);
-
-});
-
-
-// --------------------------------------------------
-// CREATE TABLE
-// --------------------------------------------------
-
-function createTable(populationData, employmentData) {
+function setupTable(populationData, employmentData) {
 
     const tableBody =
-        document.getElementById("table-body");
+        document.querySelector("table tbody");
 
 
-    // Get municipality names
+    // Population information
+    const populationDimension =
+        populationData.dimension["alue_23_20260101"];
+
     const municipalityLabels =
-        populationData
-            .dimension["alue_23_20260101"]
-            .category
-            .label;
+        populationDimension.category.label;
 
-
-    // Get population values
     const populationValues =
         populationData.value;
 
 
-    // Get employment values
+    // Employment information
     const employmentValues =
         employmentData.value;
 
 
-    // Get municipality codes
+    // Municipality codes
     const municipalityCodes =
         Object.keys(municipalityLabels);
 
 
-    // Create one row for every municipality
     municipalityCodes.forEach((code, index) => {
 
-        // Create row
         const row =
             document.createElement("tr");
 
 
-        // ------------------------------------------
         // Municipality
-        // ------------------------------------------
-
         const municipalityCell =
             document.createElement("td");
 
@@ -136,10 +96,7 @@ function createTable(populationData, employmentData) {
             municipalityLabels[code];
 
 
-        // ------------------------------------------
         // Population
-        // ------------------------------------------
-
         const populationCell =
             document.createElement("td");
 
@@ -147,10 +104,7 @@ function createTable(populationData, employmentData) {
             populationValues[index];
 
 
-        // ------------------------------------------
         // Employment
-        // ------------------------------------------
-
         const employmentCell =
             document.createElement("td");
 
@@ -158,22 +112,15 @@ function createTable(populationData, employmentData) {
             employmentValues[index];
 
 
-        // ------------------------------------------
-        // Add cells to row
-        // ------------------------------------------
-
         row.appendChild(municipalityCell);
-
         row.appendChild(populationCell);
-
         row.appendChild(employmentCell);
-
-
-        // ------------------------------------------
-        // Add row to table
-        // ------------------------------------------
 
         tableBody.appendChild(row);
 
     });
 }
+
+
+// Start the application
+initializeCode();
