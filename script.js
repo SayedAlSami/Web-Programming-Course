@@ -1,92 +1,64 @@
 const populationUrl =
-    "https://pxdata.stat.fi/PxWeb/api/v1/fi/StatFin/vaerak/statfin_vaerak_pxt_11ra.px";
+    "https://pxdata.stat.fi/PxWeb/api/v1/fi/StatFin/vaerak/11ra.px";
 
 const employmentUrl =
-    "https://pxdata.stat.fi/PxWeb/api/v1/fi/StatFin/tyokay/statfin_tyokay_pxt_115b.px";
+    "https://pxdata.stat.fi/PxWeb/api/v1/fi/StatFin/tyokay/115b.px";
 
 
-// --------------------------------------------------
-// GET POPULATION DATA
-// --------------------------------------------------
+async function getData() {
+    try {
 
-function getPopulation() {
+        // Get the population query
+        const populationQueryResponse =
+            await fetch("population_query.json");
 
-    return fetch("population_query.json")
-        .then(response => response.json())
-        .then(query => {
+        const populationQuery =
+            await populationQueryResponse.json();
 
-            return fetch(populationUrl, {
+
+        // Get population data
+        const populationResponse =
+            await fetch(populationUrl, {
                 method: "POST",
-
                 headers: {
                     "Content-Type": "application/json"
                 },
-
-                body: JSON.stringify(query)
+                body: JSON.stringify(populationQuery)
             });
 
-        })
-        .then(response => response.json());
-}
+        const populationData =
+            await populationResponse.json();
 
 
-// --------------------------------------------------
-// GET EMPLOYMENT DATA
-// --------------------------------------------------
+        // Get the employment query
+        const employmentQueryResponse =
+            await fetch("employment_query.json");
 
-function getEmployment() {
+        const employmentQuery =
+            await employmentQueryResponse.json();
 
-    return fetch("employment_query.json")
-        .then(response => response.json())
-        .then(query => {
 
-            return fetch(employmentUrl, {
+        // Get employment data
+        const employmentResponse =
+            await fetch(employmentUrl, {
                 method: "POST",
-
                 headers: {
                     "Content-Type": "application/json"
                 },
-
-                body: JSON.stringify(query)
+                body: JSON.stringify(employmentQuery)
             });
 
-        })
-        .then(response => response.json());
+        const employmentData =
+            await employmentResponse.json();
+
+
+        createTable(populationData, employmentData);
+
+    } catch (error) {
+        console.error("Error fetching data:", error);
+    }
 }
 
-
-// --------------------------------------------------
-// GET BOTH DATASETS
-// --------------------------------------------------
-
-Promise.all([
-    getPopulation(),
-    getEmployment()
-])
-
-.then(([populationData, employmentData]) => {
-
-    console.log("Population data:");
-    console.log(populationData);
-
-    console.log("Employment data:");
-    console.log(employmentData);
-
-    createTable(populationData, employmentData);
-
-})
-
-.catch(error => {
-
-    console.error("Something went wrong:");
-    console.error(error);
-
-});
-
-
-// --------------------------------------------------
-// CREATE TABLE
-// --------------------------------------------------
 
 function createTable(populationData, employmentData) {
 
@@ -94,86 +66,103 @@ function createTable(populationData, employmentData) {
         document.getElementById("table-body");
 
 
-    // Get municipality names
-    const municipalityLabels =
-        populationData
-            .dimension["alue_23_20260101"]
-            .category
-            .label;
+    // Population municipalities
+    const municipalities =
+        populationData.dimension[
+            "alue_23_20260101"
+        ].category.label;
 
 
-    // Get population values
-    const populationValues =
+    // Population values
+    const populations =
         populationData.value;
 
 
-    // Get employment values
-    const employmentValues =
+    // Employment values
+    const employments =
         employmentData.value;
 
 
-    // Get municipality codes
     const municipalityCodes =
-        Object.keys(municipalityLabels);
+        Object.keys(municipalities);
 
 
-    // Create one row for every municipality
     municipalityCodes.forEach((code, index) => {
+
+        const municipality =
+            municipalities[code];
+
+        const population =
+            populations[index];
+
+        const employment =
+            employments[index];
+
+
+        // Calculate employment percentage
+        const percentage =
+            ((employment / population) * 100).toFixed(2);
+
 
         // Create row
         const row =
             document.createElement("tr");
 
 
-        // ------------------------------------------
         // Municipality
-        // ------------------------------------------
-
         const municipalityCell =
             document.createElement("td");
 
         municipalityCell.textContent =
-            municipalityLabels[code];
+            municipality;
 
 
-        // ------------------------------------------
         // Population
-        // ------------------------------------------
-
         const populationCell =
             document.createElement("td");
 
         populationCell.textContent =
-            populationValues[index];
+            population;
 
 
-        // ------------------------------------------
         // Employment
-        // ------------------------------------------
-
         const employmentCell =
             document.createElement("td");
 
         employmentCell.textContent =
-            employmentValues[index];
+            employment;
 
 
-        // ------------------------------------------
+        // Employment %
+        const percentageCell =
+            document.createElement("td");
+
+        percentageCell.textContent =
+            percentage + "%";
+
+
         // Add cells to row
-        // ------------------------------------------
-
         row.appendChild(municipalityCell);
-
         row.appendChild(populationCell);
-
         row.appendChild(employmentCell);
+        row.appendChild(percentageCell);
 
 
-        // ------------------------------------------
+        // Conditional styling
+        if (percentage > 45) {
+            row.style.backgroundColor = "#aaffbd";
+        }
+
+        if (percentage < 25) {
+            row.style.backgroundColor = "#ff9e9e";
+        }
+
+
         // Add row to table
-        // ------------------------------------------
-
         tableBody.appendChild(row);
 
     });
 }
+
+
+getData();
