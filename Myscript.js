@@ -1,197 +1,177 @@
 const populationUrl =
-    "https://pxdata.stat.fi/PxWeb/api/v1/fi/StatFin/vaerak/11ra.px";
+    "https://pxdata.stat.fi/PxWeb/api/v1/fi/StatFin/vaerak/statfin_vaerak_pxt_11ra.px";
 
 const employmentUrl =
-    "https://pxdata.stat.fi/PxWeb/api/v1/fi/StatFin/tyokay/115b.px";
+    "https://pxdata.stat.fi/PxWeb/api/v1/fi/StatFin/tyokay/statfin_tyokay_pxt_115b.px";
 
 
-// Get the population query
-fetch("population_query.json")
-    .then(response => response.json())
-    .then(populationQuery => {
+// --------------------------------------------------
+// GET POPULATION DATA
+// --------------------------------------------------
 
-        // Send the population query to the API
-        return fetch(populationUrl, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(populationQuery)
-        });
+function getPopulation() {
 
-    })
-    .then(response => response.json())
-    .then(populationData => {
+    return fetch("population_query.json")
+        .then(response => response.json())
+        .then(query => {
 
-        // Get the employment query
-        return fetch("employment_query.json")
-            .then(response => response.json())
-            .then(employmentQuery => {
+            return fetch(populationUrl, {
+                method: "POST",
 
-                // Send employment query to API
-                return fetch(employmentUrl, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify(employmentQuery)
-                });
+                headers: {
+                    "Content-Type": "application/json"
+                },
 
-            })
-            .then(response => response.json())
-            .then(employmentData => {
-
-                createTable(populationData, employmentData);
-
+                body: JSON.stringify(query)
             });
 
-    })
-    .catch(error => {
-        console.error("Error:", error);
-    });
+        })
+        .then(response => response.json());
+}
 
+
+// --------------------------------------------------
+// GET EMPLOYMENT DATA
+// --------------------------------------------------
+
+function getEmployment() {
+
+    return fetch("employment_query.json")
+        .then(response => response.json())
+        .then(query => {
+
+            return fetch(employmentUrl, {
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify(query)
+            });
+
+        })
+        .then(response => response.json());
+}
+
+
+// --------------------------------------------------
+// GET BOTH DATASETS
+// --------------------------------------------------
+
+Promise.all([
+    getPopulation(),
+    getEmployment()
+])
+
+.then(([populationData, employmentData]) => {
+
+    console.log("Population data:");
+    console.log(populationData);
+
+    console.log("Employment data:");
+    console.log(employmentData);
+
+    createTable(populationData, employmentData);
+
+})
+
+.catch(error => {
+
+    console.error("Something went wrong:");
+    console.error(error);
+
+});
+
+
+// --------------------------------------------------
+// CREATE TABLE
+// --------------------------------------------------
 
 function createTable(populationData, employmentData) {
 
-    const tableBody = document.getElementById("table-body");
+    const tableBody =
+        document.getElementById("table-body");
 
-    /*
-     * Population data
-     */
 
-    const populationDimension =
-        populationData.dimension["alue_23_20260101"];
-
+    // Get municipality names
     const municipalityLabels =
-        populationDimension.category.label;
+        populationData
+            .dimension["alue_23_20260101"]
+            .category
+            .label;
 
+
+    // Get population values
     const populationValues =
         populationData.value;
 
 
-    /*
-     * Employment data
-     */
-
-    const employmentDimension =
-        employmentData.dimension["alue_23_20260101"];
-
+    // Get employment values
     const employmentValues =
         employmentData.value;
 
 
-    /*
-     * Get municipality codes in the correct order
-     */
-
+    // Get municipality codes
     const municipalityCodes =
         Object.keys(municipalityLabels);
 
 
-    /*
-     * Create one table row for every municipality
-     */
-
+    // Create one row for every municipality
     municipalityCodes.forEach((code, index) => {
 
-        const municipality =
-            municipalityLabels[code];
-
-        const population =
-            populationValues[index];
-
-        const employment =
-            employmentValues[index];
+        // Create row
+        const row =
+            document.createElement("tr");
 
 
-        /*
-         * Calculate employment percentage
-         */
-
-        const employmentPercentage =
-            ((employment / population) * 100).toFixed(2);
-
-
-        /*
-         * Create table row
-         */
-
-        const row = document.createElement("tr");
-
-
-        /*
-         * Municipality cell
-         */
+        // ------------------------------------------
+        // Municipality
+        // ------------------------------------------
 
         const municipalityCell =
             document.createElement("td");
 
         municipalityCell.textContent =
-            municipality;
+            municipalityLabels[code];
 
 
-        /*
-         * Population cell
-         */
+        // ------------------------------------------
+        // Population
+        // ------------------------------------------
 
         const populationCell =
             document.createElement("td");
 
         populationCell.textContent =
-            population;
+            populationValues[index];
 
 
-        /*
-         * Employment cell
-         */
+        // ------------------------------------------
+        // Employment
+        // ------------------------------------------
 
         const employmentCell =
             document.createElement("td");
 
         employmentCell.textContent =
-            employment;
+            employmentValues[index];
 
 
-        /*
-         * Employment percentage cell
-         */
-
-        const percentageCell =
-            document.createElement("td");
-
-        percentageCell.textContent =
-            employmentPercentage + "%";
-
-
-        /*
-         * Add cells to row
-         */
+        // ------------------------------------------
+        // Add cells to row
+        // ------------------------------------------
 
         row.appendChild(municipalityCell);
+
         row.appendChild(populationCell);
+
         row.appendChild(employmentCell);
-        row.appendChild(percentageCell);
 
 
-        /*
-         * Conditional styling
-         */
-
-        if (employmentPercentage > 45) {
-
-            row.style.backgroundColor = "#aaffbd";
-
-        }
-        else if (employmentPercentage < 25) {
-
-            row.style.backgroundColor = "#ff9e9e";
-
-        }
-
-
-        /*
-         * Add row to table
-         */
+        // ------------------------------------------
+        // Add row to table
+        // ------------------------------------------
 
         tableBody.appendChild(row);
 
