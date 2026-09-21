@@ -14,22 +14,23 @@ h1 {
 
 table {
     border-collapse: collapse;
-    width: 100%;
-    table-layout: fixed;
     font-size: 16px;
     text-align: left;
+    width: 100%;
+    table-layout: fixed;
 }
 
 th {
     background-color: #b7d0ff;
     font-weight: bold;
-    padding: 12px 12px 6px;
+    padding: 12px 0px 12px 6px;
     border-bottom: 2px solid gray;
+    text-align: center;
 }
 
 td {
     padding: 6px;
-    border: 1px solid gray;
+    border-bottom: 1px solid gray;
 }
 
 tbody tr:nth-child(even) {
