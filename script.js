@@ -1,43 +1,43 @@
-// Get the form
+// Get the search form
 const searchForm = document.getElementById("search-form");
 
 // Get the input field
 const inputShow = document.getElementById("input-show");
 
-// Get the container where shows will be displayed
+// Get the container for the search results
 const showContainer = document.querySelector(".show-container");
 
 
 // Listen for form submission
-searchForm.addEventListener("submit", function(event) {
+searchForm.addEventListener("submit", function (event) {
 
-    // Prevent the browser from refreshing the page
+    // Prevent the page from refreshing
     event.preventDefault();
 
-    // Get the value typed by the user
+    // Get the search term
     const searchValue = inputShow.value;
 
-    // Fetch data from TVMaze API
+    // Fetch data from TVMaze
     fetch("https://api.tvmaze.com/search/shows?q=" + searchValue)
 
         // Convert response to JSON
-        .then(function(response) {
+        .then(function (response) {
             return response.json();
         })
 
-        // Use the received data
-        .then(function(data) {
+        // Process the data
+        .then(function (data) {
 
-            // Remove previous search results
+            // Remove previous results
             showContainer.innerHTML = "";
 
-            // Loop through every result
-            data.forEach(function(item) {
+            // Go through every search result
+            data.forEach(function (item) {
 
-                // The actual TV show is inside item.show
+                // Get the show object
                 const show = item.show;
 
-                // Get image
+                // Get the image URL
                 let imageURL = "";
 
                 if (show.image && show.image.medium) {
@@ -64,13 +64,14 @@ searchForm.addEventListener("submit", function(event) {
                     </div>
                 `;
 
-                // Add the show to the container
+                // Add the show to the page
                 showContainer.innerHTML += showHTML;
             });
         })
 
         // Handle errors
-        .catch(function(error) {
-            console.error("Error fetching data:", error);
+        .catch(function (error) {
+            console.error("Error fetching TV show data:", error);
         });
+
 });

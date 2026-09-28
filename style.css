@@ -1,18 +1,19 @@
-/* Use Roboto for the whole webpage */
+/* Body styling */
 body {
-    background-color: #ecf0f1;
+    background-color: #eceff1;
     font-family: "Roboto", sans-serif;
 }
 
 
-/* Container holding all the TV shows */
+/* Container for all shows */
 .show-container {
+    width: 100%;
     padding-left: 10px;
     padding-right: 10px;
 }
 
 
-/* Individual TV show */
+/* Individual show */
 .show-data {
     width: 100%;
     background-color: #cfd8dc;
@@ -24,33 +25,29 @@ body {
 
     border-radius: 6px;
 
-    /* Makes the show look like it is floating */
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
 }
 
 
-/* Center the show title */
+/* Show title */
 .show-data h1 {
     text-align: center;
 }
 
 
-/* Make images behave as block elements */
-.show-data img {
-    display: block;
-}
-
-
-/* Information next to the image */
+/* Show information */
 .show-info {
     width: 100%;
 }
 
 
-/*
-    Desktop:
-    Put image and information next to each other.
-*/
+/* Image */
+.show-data img {
+    display: block;
+}
+
+
+/* Desktop styling */
 @media screen and (min-width: 800px) {
 
     .show-data {
@@ -63,10 +60,7 @@ body {
 }
 
 
-/*
-    Mobile:
-    Devices narrower than 800px.
-*/
+/* Mobile styling */
 @media screen and (max-width: 799px) {
 
     .show-data img {
