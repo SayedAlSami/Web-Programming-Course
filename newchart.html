@@ -117,6 +117,8 @@
       }
 
       const result = await response.json();
+    
+
 
       if (!Array.isArray(result.value)) {
         throw new Error(
@@ -129,42 +131,44 @@
       );
     }
 
-    function drawChart(labels, births, deaths, areaName) {
-      document.getElementById("chart").innerHTML = "";
 
-      new frappe.Chart("#chart", {
-        title: "Births and deaths in " + areaName,
+function drawChart(labels, births, deaths, areaName) {
+  document.getElementById("chart").innerHTML = "";
 
-        data: {
-          labels: labels,
-          datasets: [
-            {
-              name: "Births",
-              values: births
-            },
-            {
-              name: "Deaths",
-              values: deaths
-            }
-          ]
+  new frappe.Chart("#chart", {
+    title: "Births and deaths in " + areaName,
+
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          name: "Births",
+          values: labels.map((year, index) => births[index])
         },
-
-        type: "bar",
-        height: 450,
-        colors: ["#63d0ff", "#363636"],
-
-        axisOptions: {
-          xAxisMode: "tick",
-          yAxisMode: "span",
-          xIsSeries: true
-        },
-
-        barOptions: {
-          spaceRatio: 0.15,
-          stacked: false
+        {
+          name: "Deaths",
+          values: labels.map((year, index) => deaths[index])
         }
-      });
+      ]
+    },
+
+    type: "bar",
+    height: 450,
+    colors: ["#63d0ff", "#363636"],
+
+    axisOptions: {
+      xAxisMode: "tick",
+      yAxisMode: "span",
+      xIsSeries: true
+    },
+
+    barOptions: {
+      spaceRatio: 0.15,
+      stacked: false
     }
+  });
+}
+
 
     async function initialize() {
       const status = document.getElementById("status");
