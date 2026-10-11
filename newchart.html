@@ -168,13 +168,14 @@ function drawChart(labels, births, deaths, areaName) {
     async function initialize() {
       const status = document.getElementById("status");
 
-      const areaCode =
-        sessionStorage.getItem("selectedAreaCode") ||
-        COUNTRY_CODE;
+const savedAreaCode = sessionStorage.getItem("selectedAreaCode");
+const savedAreaName = sessionStorage.getItem("selectedAreaName");
 
-      const areaName =
-        sessionStorage.getItem("selectedAreaName") ||
-        COUNTRY_NAME;
+const areaCode = savedAreaCode || COUNTRY_CODE;
+const areaName = savedAreaName || COUNTRY_NAME;
+
+console.log("Area code used for births/deaths:", areaCode);
+console.log("Area name used for births/deaths:", areaName);
 
       try {
         // Request 1: Fetch births.
