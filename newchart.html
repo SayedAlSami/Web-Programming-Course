@@ -132,6 +132,7 @@
     }
 
 
+
 function drawChart(labels, births, deaths, areaName) {
   document.getElementById("chart").innerHTML = "";
 
@@ -143,11 +144,11 @@ function drawChart(labels, births, deaths, areaName) {
       datasets: [
         {
           name: "Births",
-          values: labels.map((year, index) => births[index])
+          values: births
         },
         {
           name: "Deaths",
-          values: labels.map((year, index) => deaths[index])
+          values: deaths
         }
       ]
     },
@@ -158,8 +159,7 @@ function drawChart(labels, births, deaths, areaName) {
 
     axisOptions: {
       xAxisMode: "tick",
-      yAxisMode: "span",
-      xIsSeries: true
+      yAxisMode: "span"
     },
 
     barOptions: {
@@ -168,6 +168,7 @@ function drawChart(labels, births, deaths, areaName) {
     }
   });
 }
+
 
 
     async function initialize() {
