@@ -29,6 +29,7 @@
     button {
       font: inherit;
       padding: 5px 8px;
+      cursor: pointer;
     }
   </style>
 </head>
@@ -52,6 +53,7 @@
 
     const FIRST_YEAR = 2000;
     const LAST_YEAR = 2021;
+
     const COUNTRY_CODE = "SSS";
     const COUNTRY_NAME = "whole country";
 
@@ -109,7 +111,8 @@
 
       if (!response.ok) {
         throw new Error(
-          "Could not fetch birth or death data."
+          "Could not fetch data. HTTP status: " +
+          response.status
         );
       }
 
@@ -117,18 +120,19 @@
 
       if (!Array.isArray(result.value)) {
         throw new Error(
-          "The API response did not contain the requested data."
+          "The API response does not contain a value array."
         );
       }
 
-      // Preserve the API values in their original year order.
       return result.value.map(value =>
         value === null ? 0 : Number(value)
       );
     }
 
     function drawChart(labels, births, deaths, areaName) {
-      document.getElementById("chart").innerHTML = "";
+      const chartElement = document.getElementById("chart");
+
+      chartElement.innerHTML = "";
 
       new frappe.Chart("#chart", {
         title: "Births and deaths in " + areaName,
@@ -149,12 +153,20 @@
 
         type: "bar",
         height: 450,
-        colors: ["#63d0ff", "#363636"],
+
+        colors: [
+          "#63d0ff",
+          "#363636"
+        ],
 
         axisOptions: {
           xAxisMode: "tick",
-          yAxisMode: "span",
-          xIsSeries: true
+          yAxisMode: "span"
+        },
+
+        barOptions: {
+          spaceRatio: 0.2,
+          stacked: false
         }
       });
     }
@@ -162,7 +174,6 @@
     async function initialize() {
       const status = document.getElementById("status");
 
-      // Read the selected municipality from index.html.
       const areaCode =
         sessionStorage.getItem("selectedAreaCode") ||
         COUNTRY_CODE;
@@ -172,20 +183,32 @@
         COUNTRY_NAME;
 
       try {
-        // Fetch births in a separate POST request.
+        // Request 1: Fetch births.
         const births = await fetchSeries(
           areaCode,
           "synt-vm01"
         );
 
-        // Fetch deaths in a separate POST request.
+        // Request 2: Fetch deaths.
         const deaths = await fetchSeries(
           areaCode,
           "synt-vm11"
         );
 
+        // Ensure both datasets cover all requested years.
+        const years = getYearValues();
+
+        if (
+          births.length !== years.length ||
+          deaths.length !== years.length
+        ) {
+          throw new Error(
+            "The returned data does not cover all years from 2000 to 2021."
+          );
+        }
+
         drawChart(
-          getYearValues(),
+          years,
           births,
           deaths,
           areaName
@@ -195,8 +218,10 @@
           "Showing births and deaths for " + areaName + ".";
 
       } catch (error) {
-        status.textContent = error.message;
-        console.error(error);
+        status.textContent =
+          "Unable to load birth and death data.";
+
+        console.error("Chart loading error:", error);
       }
     }
 
