@@ -4,6 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <title>Births and Deaths in Finland</title>
 
   <script src="https://unpkg.com/frappe-charts@latest/dist/frappe-charts.min.umd.js"></script>
@@ -57,11 +58,7 @@
     function getYearValues() {
       const years = [];
 
-      for (
-        let year = FIRST_YEAR;
-        year <= LAST_YEAR;
-        year++
-      ) {
+      for (let year = FIRST_YEAR; year <= LAST_YEAR; year++) {
         years.push(String(year));
       }
 
@@ -112,13 +109,11 @@
 
       if (!response.ok) {
         throw new Error(
-          "A birth or death data request failed. Please try again."
+          "Could not fetch birth or death data."
         );
       }
 
       const result = await response.json();
-    
-
 
       if (!Array.isArray(result.value)) {
         throw new Error(
@@ -126,55 +121,48 @@
         );
       }
 
+      // Preserve the API values in their original year order.
       return result.value.map(value =>
         value === null ? 0 : Number(value)
       );
     }
 
+    function drawChart(labels, births, deaths, areaName) {
+      document.getElementById("chart").innerHTML = "";
 
+      new frappe.Chart("#chart", {
+        title: "Births and deaths in " + areaName,
 
-function drawChart(labels, births, deaths, areaName) {
-  document.getElementById("chart").innerHTML = "";
-
-  new frappe.Chart("#chart", {
-    title: "Births and deaths in " + areaName,
-
-    data: {
-      labels: labels,
-      datasets: [
-        {
-          name: "Births",
-          values: births
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              name: "Births",
+              values: births
+            },
+            {
+              name: "Deaths",
+              values: deaths
+            }
+          ]
         },
-        {
-          name: "Deaths",
-          values: deaths
+
+        type: "bar",
+        height: 450,
+        colors: ["#63d0ff", "#363636"],
+
+        axisOptions: {
+          xAxisMode: "tick",
+          yAxisMode: "span",
+          xIsSeries: true
         }
-      ]
-    },
-
-    type: "bar",
-    height: 450,
-    colors: ["#63d0ff", "#363636"],
-
-    axisOptions: {
-      xAxisMode: "tick",
-      yAxisMode: "span"
-    },
-
-    barOptions: {
-      spaceRatio: 0.15,
-      stacked: false
+      });
     }
-  });
-}
-
-
 
     async function initialize() {
       const status = document.getElementById("status");
 
-      // Read the municipality selected on index.html.
+      // Read the selected municipality from index.html.
       const areaCode =
         sessionStorage.getItem("selectedAreaCode") ||
         COUNTRY_CODE;
@@ -184,13 +172,13 @@ function drawChart(labels, births, deaths, areaName) {
         COUNTRY_NAME;
 
       try {
-        // First POST request: fetch birth data.
+        // Fetch births in a separate POST request.
         const births = await fetchSeries(
           areaCode,
           "synt-vm01"
         );
 
-        // Second POST request: fetch death data separately.
+        // Fetch deaths in a separate POST request.
         const deaths = await fetchSeries(
           areaCode,
           "synt-vm11"
@@ -208,6 +196,7 @@ function drawChart(labels, births, deaths, areaName) {
 
       } catch (error) {
         status.textContent = error.message;
+        console.error(error);
       }
     }
 
